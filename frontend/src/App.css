@@ -1,0 +1,5 @@
+/* Ant Design customizations if needed */
+.ant-layout-header {
+  display: flex;
+  align-items: center;
+}
