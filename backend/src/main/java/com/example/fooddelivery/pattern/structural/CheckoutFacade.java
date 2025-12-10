@@ -74,6 +74,7 @@ public class CheckoutFacade {
         OrderFactory factory = orderFactoryProvider.getFactory(request.getOrderType());
         Order order = factory.createOrder(request);
         order.setCustomer(customer);
+        order.setRestaurant(restaurant);
         order.setStatus(OrderStatus.PENDING);
 
         // 4. Add order items
