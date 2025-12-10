@@ -69,12 +69,24 @@ public class CheckoutFacade {
             .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
         Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
             .orElseThrow(() -> new IllegalArgumentException("Restaurant not found"));
+        
+        if (restaurant == null) {
+            throw new IllegalStateException("Restaurant with id " + request.getRestaurantId() + " is null");
+        }
 
         // 3. Create order using Factory Method
         OrderFactory factory = orderFactoryProvider.getFactory(request.getOrderType());
         Order order = factory.createOrder(request);
+        
+        // Set relationships BEFORE setting status
         order.setCustomer(customer);
         order.setRestaurant(restaurant);
+        
+        // Verify restaurant was set
+        if (order.getRestaurant() == null) {
+            throw new IllegalStateException("Restaurant is null after setRestaurant call. Restaurant ID: " + request.getRestaurantId());
+        }
+        
         order.setStatus(OrderStatus.PENDING);
 
         // 4. Add order items
@@ -92,7 +104,8 @@ public class CheckoutFacade {
         }
 
         // 5. Calculate route (Adapter + Builder)
-        DeliveryRoute route = routingService.createRoute(order);
+        // Pass restaurant and customer directly to avoid lazy loading issues
+        DeliveryRoute route = routingService.createRoute(order, restaurant, customer);
         order.setDeliveryRoute(route);
 
         // 6. Calculate price (Strategy + Decorator)
