@@ -1,0 +1,69 @@
+@startuml Decorator Pattern - Price Calculator Decorator System
+
+interface PriceCalculator {
+    + {abstract} calculatePrice(order: Order): BigDecimal
+}
+
+class BasePriceCalculator {
+    + calculatePrice(order: Order): BigDecimal
+}
+
+class PriorityDeliveryPriceDecorator {
+    - PRIORITY_FEE: BigDecimal
+    - wrapped: PriceCalculator
+    + calculatePrice(order: Order): BigDecimal
+}
+
+class ExtraPackagingPriceDecorator {
+    - PACKAGING_FEE_PER_ITEM: BigDecimal
+    - wrapped: PriceCalculator
+    + calculatePrice(order: Order): BigDecimal
+}
+
+class InsurancePriceDecorator {
+    - INSURANCE_PERCENTAGE: BigDecimal
+    - wrapped: PriceCalculator
+    + calculatePrice(order: Order): BigDecimal
+}
+
+class Order {
+    + isPriority(): boolean
+    + getExtraPackaging(): Boolean
+    + getInsurance(): Boolean
+    + getItems(): List<OrderItem>
+}
+
+' Relationships
+PriceCalculator <|.. BasePriceCalculator : implements
+PriceCalculator <|.. PriorityDeliveryPriceDecorator : implements
+PriceCalculator <|.. ExtraPackagingPriceDecorator : implements
+PriceCalculator <|.. InsurancePriceDecorator : implements
+PriorityDeliveryPriceDecorator "1" --> "1" PriceCalculator : wraps
+ExtraPackagingPriceDecorator "1" --> "1" PriceCalculator : wraps
+InsurancePriceDecorator "1" --> "1" PriceCalculator : wraps
+PriceCalculator ..> Order : uses
+
+note right of PriceCalculator
+    Component Interface: Defines the
+    interface for objects that can have
+    responsibilities added dynamically
+end note
+
+note right of BasePriceCalculator
+    Concrete Component: Base implementation
+    that calculates base price
+end note
+
+note bottom of PriorityDeliveryPriceDecorator
+    Decorators can be chained:
+    new InsurancePriceDecorator(
+        new ExtraPackagingPriceDecorator(
+            new PriorityDeliveryPriceDecorator(
+                new BasePriceCalculator()
+            )
+        )
+    )
+end note
+
+@enduml
+

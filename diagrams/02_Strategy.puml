@@ -1,0 +1,47 @@
+@startuml Strategy Pattern - Pricing Strategy System
+
+interface PricingStrategy {
+    + {abstract} apply(basePrice: BigDecimal, order: Order): BigDecimal
+}
+
+class DistanceBasedPricingStrategy {
+    - FEE_PER_KM: BigDecimal
+    + apply(basePrice: BigDecimal, order: Order): BigDecimal
+}
+
+class PeakHourPricingStrategy {
+    - PEAK_HOUR_SURCHARGE: BigDecimal
+    - PEAK_START_1: LocalTime
+    - PEAK_END_1: LocalTime
+    - PEAK_START_2: LocalTime
+    - PEAK_END_2: LocalTime
+    + apply(basePrice: BigDecimal, order: Order): BigDecimal
+}
+
+class PromotionalPricingStrategy {
+    + apply(basePrice: BigDecimal, order: Order): BigDecimal
+}
+
+class PricingService {
+    - strategies: List<PricingStrategy>
+    + calculateFinalPrice(order: Order): BigDecimal
+}
+
+' Relationships
+PricingStrategy <|.. DistanceBasedPricingStrategy : implements
+PricingStrategy <|.. PeakHourPricingStrategy : implements
+PricingStrategy <|.. PromotionalPricingStrategy : implements
+PricingService "1" *-- "0..*" PricingStrategy : uses
+
+note right of PricingStrategy
+    Strategy Interface: Defines the
+    algorithm interface
+end note
+
+note right of PricingService
+    Context: Uses a strategy to
+    calculate final price
+end note
+
+@enduml
+

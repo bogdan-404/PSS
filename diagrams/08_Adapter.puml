@@ -1,0 +1,61 @@
+@startuml Adapter Pattern - Route Client Adapter
+
+interface RouteClient {
+    + {abstract} getRoute(origin: String, destination: String): RouteData
+}
+
+class RouteData {
+    - distanceKm: Double
+    - estimatedTimeMinutes: Integer
+    - routeDetails: String
+    + getDistanceKm(): Double
+    + getEstimatedTimeMinutes(): Integer
+    + getRouteDetails(): String
+}
+
+class DummyRouteClientAdapter {
+    + getRoute(origin: String, destination: String): RouteData
+}
+
+class RoutingService {
+    - routeClient: RouteClient
+    + createRoute(order: Order): DeliveryRoute
+}
+
+class DeliveryRoute {
+    + getDistanceKm(): Double
+    + getEstimatedTimeMinutes(): Integer
+}
+
+class Order {
+    + getCustomer(): Customer
+    + getRestaurant(): Restaurant
+}
+
+' Relationships
+RouteClient <|.. DummyRouteClientAdapter : implements
+RouteClient ..> RouteData : returns
+DummyRouteClientAdapter ..> RouteData : creates
+RoutingService "1" --> "1" RouteClient : uses
+RoutingService ..> DeliveryRoute : creates
+RoutingService ..> Order : uses
+
+note right of RouteClient
+    Target Interface: Defines the interface
+    that clients expect to work with
+end note
+
+note right of DummyRouteClientAdapter
+    Adapter: Adapts the interface of
+    an external routing service to
+    match RouteClient interface
+end note
+
+note bottom of RoutingService
+    Client: Uses RouteClient interface
+    without knowing the concrete
+    implementation (adapter)
+end note
+
+@enduml
+

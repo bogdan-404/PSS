@@ -1,0 +1,69 @@
+@startuml Observer Pattern - Order Event Notification System
+
+interface OrderEventListener {
+    + {abstract} onOrderEvent(event: OrderEvent): void
+}
+
+class OrderEventPublisher {
+    - listeners: List<OrderEventListener>
+    + addListener(listener: OrderEventListener): void
+    + removeListener(listener: OrderEventListener): void
+    + publish(event: OrderEvent): void
+}
+
+abstract class OrderEvent {
+    - order: Order
+    - timestamp: long
+    + getOrder(): Order
+    + getTimestamp(): long
+}
+
+class OrderCreatedEvent {
+    + getOrder(): Order
+}
+
+class OrderStatusChangedEvent {
+    + getOrder(): Order
+    + getOldStatus(): OrderStatus
+    + getNewStatus(): OrderStatus
+}
+
+class CustomerNotificationListener {
+    - notificationRepository: NotificationRepository
+    + onOrderEvent(event: OrderEvent): void
+}
+
+class RestaurantNotificationListener {
+    - notificationRepository: NotificationRepository
+    + onOrderEvent(event: OrderEvent): void
+}
+
+class CourierNotificationListener {
+    - notificationRepository: NotificationRepository
+    + onOrderEvent(event: OrderEvent): void
+}
+
+' Relationships
+OrderEventPublisher "1" *-- "0..*" OrderEventListener : maintains
+OrderEvent <|-- OrderCreatedEvent
+OrderEvent <|-- OrderStatusChangedEvent
+OrderEventPublisher ..> OrderEvent : publishes
+OrderEventListener <|.. CustomerNotificationListener : implements
+OrderEventListener <|.. RestaurantNotificationListener : implements
+OrderEventListener <|.. CourierNotificationListener : implements
+CustomerNotificationListener ..> NotificationRepository : uses
+RestaurantNotificationListener ..> NotificationRepository : uses
+CourierNotificationListener ..> NotificationRepository : uses
+
+note right of OrderEventPublisher
+    Subject: Maintains list of observers
+    and notifies them when events occur
+end note
+
+note right of OrderEventListener
+    Observer Interface: Defines the
+    update interface for observers
+end note
+
+@enduml
+

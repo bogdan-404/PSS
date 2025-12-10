@@ -1,0 +1,65 @@
+@startuml Abstract Factory Pattern - Payment Provider Factory
+
+class PaymentProviderFactory {
+    - providers: Map<PaymentMethod, PaymentProvider>
+    + getPaymentProvider(paymentMethod: PaymentMethod): PaymentProvider
+}
+
+interface PaymentProvider {
+    + {abstract} authorizePayment(order: Order, amount: BigDecimal): boolean
+    + {abstract} capturePayment(order: Order, amount: BigDecimal): boolean
+    + {abstract} refund(order: Order, amount: BigDecimal): boolean
+    + {abstract} getProviderName(): String
+}
+
+class StripePaymentProvider {
+    + authorizePayment(order: Order, amount: BigDecimal): boolean
+    + capturePayment(order: Order, amount: BigDecimal): boolean
+    + refund(order: Order, amount: BigDecimal): boolean
+    + getProviderName(): String
+}
+
+class PaypalPaymentProvider {
+    + authorizePayment(order: Order, amount: BigDecimal): boolean
+    + capturePayment(order: Order, amount: BigDecimal): boolean
+    + refund(order: Order, amount: BigDecimal): boolean
+    + getProviderName(): String
+}
+
+class CashOnDeliveryPaymentProvider {
+    + authorizePayment(order: Order, amount: BigDecimal): boolean
+    + capturePayment(order: Order, amount: BigDecimal): boolean
+    + refund(order: Order, amount: BigDecimal): boolean
+    + getProviderName(): String
+}
+
+enum PaymentMethod {
+    STRIPE
+    PAYPAL
+    CASH_ON_DELIVERY
+}
+
+class Order {
+    + getId(): Long
+}
+
+' Relationships
+PaymentProviderFactory "1" *-- "1..*" PaymentProvider : creates
+PaymentProvider <|.. StripePaymentProvider : implements
+PaymentProvider <|.. PaypalPaymentProvider : implements
+PaymentProvider <|.. CashOnDeliveryPaymentProvider : implements
+PaymentProviderFactory ..> PaymentMethod : uses
+PaymentProvider ..> Order : uses
+
+note right of PaymentProviderFactory
+    Abstract Factory: Creates families
+    of related payment provider objects
+end note
+
+note right of PaymentProvider
+    Product Interface: Defines interface
+    for payment processing operations
+end note
+
+@enduml
+

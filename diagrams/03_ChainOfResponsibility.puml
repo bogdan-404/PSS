@@ -1,0 +1,59 @@
+@startuml Chain of Responsibility Pattern - Order Validation Chain
+
+abstract class OrderValidationHandler {
+    # next: OrderValidationHandler
+    + setNext(next: OrderValidationHandler): OrderValidationHandler
+    + validate(request: OrderCreationRequest): void
+    # {abstract} doValidate(request: OrderCreationRequest): void
+    + ValidationException
+}
+
+class AddressValidator {
+    - customerRepository: CustomerRepository
+    # doValidate(request: OrderCreationRequest): void
+}
+
+class PaymentDetailsValidator {
+    # doValidate(request: OrderCreationRequest): void
+}
+
+class ItemsAvailabilityValidator {
+    - menuItemRepository: MenuItemRepository
+    # doValidate(request: OrderCreationRequest): void
+}
+
+class FraudCheckValidator {
+    # doValidate(request: OrderCreationRequest): void
+}
+
+class OrderCreationRequest {
+    + getCustomerId(): Long
+    + getRestaurantId(): Long
+    + getPaymentMethod(): PaymentMethod
+    + getItems(): List<OrderItemRequest>
+}
+
+' Relationships
+OrderValidationHandler <|-- AddressValidator : extends
+OrderValidationHandler <|-- PaymentDetailsValidator : extends
+OrderValidationHandler <|-- ItemsAvailabilityValidator : extends
+OrderValidationHandler <|-- FraudCheckValidator : extends
+OrderValidationHandler "0..1" --> "0..1" OrderValidationHandler : next
+OrderValidationHandler ..> OrderCreationRequest : validates
+AddressValidator ..> CustomerRepository : uses
+ItemsAvailabilityValidator ..> MenuItemRepository : uses
+
+note right of OrderValidationHandler
+    Handler: Defines interface for
+    handling requests and maintains
+    reference to next handler
+end note
+
+note bottom of OrderValidationHandler
+    Chain: Each handler processes
+    request and passes to next
+    if validation succeeds
+end note
+
+@enduml
+

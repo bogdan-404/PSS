@@ -1,0 +1,60 @@
+@startuml Factory Method Pattern - Order Factory System
+
+interface OrderFactory {
+    + {abstract} createOrder(request: OrderCreationRequest): Order
+}
+
+class StandardOrderFactory {
+    + createOrder(request: OrderCreationRequest): Order
+}
+
+class ScheduledOrderFactory {
+    + createOrder(request: OrderCreationRequest): Order
+}
+
+class GroupOrderFactory {
+    + createOrder(request: OrderCreationRequest): Order
+}
+
+class OrderFactoryProvider {
+    - factories: Map<OrderType, OrderFactory>
+    + getFactory(orderType: OrderType): OrderFactory
+}
+
+class Order {
+    + getId(): Long
+    + getType(): OrderType
+    + getStatus(): OrderStatus
+}
+
+enum OrderType {
+    STANDARD
+    SCHEDULED
+    GROUP
+}
+
+class OrderCreationRequest {
+    + getOrderType(): OrderType
+}
+
+' Relationships
+OrderFactory <|.. StandardOrderFactory : implements
+OrderFactory <|.. ScheduledOrderFactory : implements
+OrderFactory <|.. GroupOrderFactory : implements
+OrderFactoryProvider "1" *-- "1..*" OrderFactory : creates
+OrderFactory ..> OrderCreationRequest : uses
+OrderFactory ..> Order : creates
+OrderFactoryProvider ..> OrderType : uses
+
+note right of OrderFactory
+    Creator Interface: Defines the
+    factory method for creating orders
+end note
+
+note right of OrderFactoryProvider
+    Client: Uses factory to create
+    appropriate order type
+end note
+
+@enduml
+

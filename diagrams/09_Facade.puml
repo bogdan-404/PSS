@@ -1,0 +1,67 @@
+@startuml Facade Pattern - Checkout Facade
+
+class CheckoutFacade {
+    - validationChain: OrderValidationHandler
+    - orderFactoryProvider: OrderFactoryProvider
+    - pricingService: PricingService
+    - paymentProviderFactory: PaymentProviderFactory
+    - routingService: RoutingService
+    - eventPublisher: OrderEventPublisher
+    - orderRepository: OrderRepository
+    - customerRepository: CustomerRepository
+    - restaurantRepository: RestaurantRepository
+    - menuItemRepository: MenuItemRepository
+    - courierRepository: CourierRepository
+    + placeOrder(request: OrderCreationRequest): Order
+}
+
+class OrderValidationHandler
+class OrderEventPublisher
+class OrderFactoryProvider
+class PaymentProviderFactory
+class PricingService
+class RoutingService
+class OrderRepository
+class CustomerRepository
+class RestaurantRepository
+class MenuItemRepository
+class CourierRepository
+class OrderCreationRequest
+class Order
+
+' Relationships
+CheckoutFacade "1" --> "1" OrderValidationHandler : uses
+CheckoutFacade "1" --> "1" OrderFactoryProvider : uses
+CheckoutFacade "1" --> "1" PricingService : uses
+CheckoutFacade "1" --> "1" PaymentProviderFactory : uses
+CheckoutFacade "1" --> "1" RoutingService : uses
+CheckoutFacade "1" --> "1" OrderEventPublisher : uses
+CheckoutFacade "1" --> "1" OrderRepository : uses
+CheckoutFacade "1" --> "1" CustomerRepository : uses
+CheckoutFacade "1" --> "1" RestaurantRepository : uses
+CheckoutFacade "1" --> "1" MenuItemRepository : uses
+CheckoutFacade "1" --> "1" CourierRepository : uses
+CheckoutFacade ..> OrderCreationRequest : uses
+CheckoutFacade ..> Order : returns
+
+note right of CheckoutFacade
+    Facade: Provides a simplified interface
+    to the complex subsystem of order
+    processing. Orchestrates validation,
+    pricing, payment, routing, and
+    notification processes.
+end note
+
+note bottom of CheckoutFacade
+    Hides complexity from clients:
+    - Validation chain
+    - Order factory selection
+    - Price calculation
+    - Payment processing
+    - Route creation
+    - Event publishing
+    - Repository operations
+end note
+
+@enduml
+

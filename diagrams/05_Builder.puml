@@ -1,0 +1,50 @@
+@startuml Builder Pattern - Delivery Route Builder
+
+class DeliveryRouteBuilder {
+    - order: Order
+    - distanceKm: Double
+    - estimatedTimeMinutes: Integer
+    - routeDetails: String
+    + withOrder(order: Order): DeliveryRouteBuilder
+    + withDistanceKm(distanceKm: Double): DeliveryRouteBuilder
+    + withEstimatedTimeMinutes(estimatedTimeMinutes: Integer): DeliveryRouteBuilder
+    + withRouteDetails(routeDetails: String): DeliveryRouteBuilder
+    + build(): DeliveryRoute
+}
+
+class DeliveryRoute {
+    - order: Order
+    - distanceKm: Double
+    - estimatedTimeMinutes: Integer
+    - routeDetails: String
+    + getDistanceKm(): Double
+    + getEstimatedTimeMinutes(): Integer
+    + getRouteDetails(): String
+}
+
+class Order {
+    + setDeliveryRoute(route: DeliveryRoute): void
+}
+
+' Relationships
+DeliveryRouteBuilder ..> Order : uses
+DeliveryRouteBuilder ..> DeliveryRoute : creates
+DeliveryRoute "1" --> "1" Order : belongs to
+
+note right of DeliveryRouteBuilder
+    Builder: Provides fluent interface
+    for constructing DeliveryRoute objects
+    step by step
+end note
+
+note bottom of DeliveryRouteBuilder
+    Method chaining allows:
+    new DeliveryRouteBuilder()
+        .withOrder(order)
+        .withDistanceKm(5.0)
+        .withEstimatedTimeMinutes(15)
+        .build()
+end note
+
+@enduml
+
