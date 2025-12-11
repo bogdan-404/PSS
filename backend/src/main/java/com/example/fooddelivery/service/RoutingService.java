@@ -22,15 +22,27 @@ public class RoutingService {
     }
 
     public DeliveryRoute createRoute(Order order, Restaurant restaurant, Customer customer) {
-        if (restaurant == null) {
+        // Be defensive: prefer explicitly provided entities, otherwise fall back to order relations
+        Restaurant effectiveRestaurant = restaurant != null ? restaurant : order.getRestaurant();
+        Customer effectiveCustomer = customer != null ? customer : order.getCustomer();
+
+        if (effectiveRestaurant == null) {
             throw new IllegalStateException("Restaurant is null when creating route");
         }
-        if (customer == null) {
+        if (effectiveCustomer == null) {
             throw new IllegalStateException("Customer is null when creating route");
         }
-        
-        String origin = restaurant.getAddress();
-        String destination = customer.getAddress();
+
+        // Make sure the order holds the same references for later usage
+        if (order.getRestaurant() == null) {
+            order.setRestaurant(effectiveRestaurant);
+        }
+        if (order.getCustomer() == null) {
+            order.setCustomer(effectiveCustomer);
+        }
+
+        String origin = effectiveRestaurant.getAddress();
+        String destination = effectiveCustomer.getAddress();
         
         if (origin == null || origin.isEmpty()) {
             throw new IllegalStateException("Restaurant address is null or empty. Restaurant ID: " + restaurant.getId());

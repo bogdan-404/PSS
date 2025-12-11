@@ -21,6 +21,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: food_delivery_backend
+    command: >
+      bash -c "mvn clean compile -Dhttps.protocols=TLSv1.2 -Dmaven.test.skip=true &&
+      mvn spring-boot:run -Dhttps.protocols=TLSv1.2
+      -Dspring-boot.run.jvmArguments=\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005\""
     depends_on:
       db:
         condition: service_healthy
@@ -30,6 +34,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: food_pass
     ports:
       - "8080:8080"
+      - "5005:5005"
     restart: unless-stopped
 
   frontend:

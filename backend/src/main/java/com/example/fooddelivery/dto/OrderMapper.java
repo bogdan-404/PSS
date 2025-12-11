@@ -11,10 +11,18 @@ public class OrderMapper {
     public OrderResponse toResponse(Order order) {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
-        response.setCustomerId(order.getCustomer().getId());
-        response.setCustomerName(order.getCustomer().getName());
-        response.setRestaurantId(order.getRestaurant().getId());
-        response.setRestaurantName(order.getRestaurant().getName());
+        
+        // Add null checks for lazy-loaded relationships
+        if (order.getCustomer() != null) {
+            response.setCustomerId(order.getCustomer().getId());
+            response.setCustomerName(order.getCustomer().getName());
+        }
+        
+        if (order.getRestaurant() != null) {
+            response.setRestaurantId(order.getRestaurant().getId());
+            response.setRestaurantName(order.getRestaurant().getName());
+        }
+        
         if (order.getCourier() != null) {
             response.setCourierId(order.getCourier().getId());
             response.setCourierName(order.getCourier().getName());
@@ -29,9 +37,12 @@ public class OrderMapper {
         response.setExtraPackaging(order.getExtraPackaging());
         response.setInsurance(order.getInsurance());
         
-        response.setItems(order.getItems().stream()
-            .map(this::toItemResponse)
-            .collect(Collectors.toList()));
+        // Add null check for items collection
+        if (order.getItems() != null) {
+            response.setItems(order.getItems().stream()
+                .map(this::toItemResponse)
+                .collect(Collectors.toList()));
+        }
         
         if (order.getDeliveryRoute() != null) {
             response.setDeliveryRoute(toRouteResponse(order.getDeliveryRoute()));
@@ -43,8 +54,13 @@ public class OrderMapper {
     private OrderResponse.OrderItemResponse toItemResponse(OrderItem item) {
         OrderResponse.OrderItemResponse response = new OrderResponse.OrderItemResponse();
         response.setId(item.getId());
-        response.setMenuItemId(item.getMenuItem().getId());
-        response.setMenuItemName(item.getMenuItem().getName());
+        
+        // Add null check for menuItem
+        if (item.getMenuItem() != null) {
+            response.setMenuItemId(item.getMenuItem().getId());
+            response.setMenuItemName(item.getMenuItem().getName());
+        }
+        
         response.setQuantity(item.getQuantity());
         response.setFinalPrice(item.getFinalPrice());
         return response;

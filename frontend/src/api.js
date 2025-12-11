@@ -4,7 +4,8 @@ import axios from 'axios'
 const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 
 const api = axios.create({
-  baseURL: API_BASE_URL || (import.meta.env.DEV ? '' : 'http://localhost:8081'),
+  // Default to backend on 8080 during local dev if no env override is set
+  baseURL: API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8080' : 'http://localhost:8081'),
   headers: {
     'Content-Type': 'application/json',
   },

@@ -10,6 +10,7 @@ import com.example.fooddelivery.pattern.creational.PaymentNotifier;
 import com.example.fooddelivery.repository.*;
 import com.example.fooddelivery.service.PricingService;
 import com.example.fooddelivery.service.RoutingService;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -143,14 +144,37 @@ public class CheckoutFacade {
             order.setCourier(couriers.get(0));
         }
 
-        // 9. Save order
+        // 9. Save order (keep working with the same instance to preserve relationships)
         order.setStatus(OrderStatus.CONFIRMED);
-        Order savedOrder = orderRepository.save(order);
+        orderRepository.save(order);
 
-        // 10. Publish event (Observer)
-        eventPublisher.publish(new OrderCreatedEvent(savedOrder));
+        // Force initialization of lazy-loaded relationships before transaction ends
+        // This ensures they are accessible after the transaction completes
+        if (order.getRestaurant() != null) {
+            Hibernate.initialize(order.getRestaurant());
+        }
+        if (order.getCustomer() != null) {
+            Hibernate.initialize(order.getCustomer());
+        }
+        if (order.getCourier() != null) {
+            Hibernate.initialize(order.getCourier());
+        }
+        if (order.getItems() != null) {
+            Hibernate.initialize(order.getItems());
+            order.getItems().forEach(item -> {
+                if (item.getMenuItem() != null) {
+                    Hibernate.initialize(item.getMenuItem());
+                }
+            });
+        }
+        if (order.getDeliveryRoute() != null) {
+            Hibernate.initialize(order.getDeliveryRoute());
+        }
 
-        return savedOrder;
+        // 10. Publish event (Observer) - ensure order has all relationships initialized
+        eventPublisher.publish(new OrderCreatedEvent(order));
+
+        return order;
     }
 }
 
