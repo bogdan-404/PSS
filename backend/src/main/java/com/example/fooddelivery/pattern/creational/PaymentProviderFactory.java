@@ -7,31 +7,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Design Pattern: Abstract Factory
+ * Design Pattern: Abstract Factory - Factory Client
  * 
- * Factory that creates appropriate payment provider instances based on payment method.
- * This encapsulates the creation logic and allows easy extension with new payment providers.
+ * Client that uses Abstract Factory pattern to get the appropriate payment platform factory.
+ * Each factory creates a family of related objects (PaymentProvider, PaymentValidator, PaymentNotifier).
  */
 @Component
 public class PaymentProviderFactory {
-    private final Map<PaymentMethod, PaymentProvider> providers;
+    private final Map<PaymentMethod, PaymentPlatformFactory> platformFactories;
 
     public PaymentProviderFactory(
-            StripePaymentProvider stripeProvider,
-            PaypalPaymentProvider paypalProvider,
-            CashOnDeliveryPaymentProvider codProvider) {
-        this.providers = new HashMap<>();
-        this.providers.put(PaymentMethod.STRIPE, stripeProvider);
-        this.providers.put(PaymentMethod.PAYPAL, paypalProvider);
-        this.providers.put(PaymentMethod.CASH_ON_DELIVERY, codProvider);
+            StripePaymentPlatformFactory stripeFactory,
+            PaypalPaymentPlatformFactory paypalFactory,
+            CashOnDeliveryPlatformFactory codFactory) {
+        this.platformFactories = new HashMap<>();
+        this.platformFactories.put(PaymentMethod.STRIPE, stripeFactory);
+        this.platformFactories.put(PaymentMethod.PAYPAL, paypalFactory);
+        this.platformFactories.put(PaymentMethod.CASH_ON_DELIVERY, codFactory);
     }
 
-    public PaymentProvider getPaymentProvider(PaymentMethod paymentMethod) {
-        PaymentProvider provider = providers.get(paymentMethod);
-        if (provider == null) {
-            throw new IllegalArgumentException("No payment provider found for method: " + paymentMethod);
+    public PaymentPlatformFactory getPlatformFactory(PaymentMethod paymentMethod) {
+        PaymentPlatformFactory factory = platformFactories.get(paymentMethod);
+        if (factory == null) {
+            throw new IllegalArgumentException("No payment platform factory found for method: " + paymentMethod);
         }
-        return provider;
+        return factory;
+    }
+
+    /**
+     * Convenience method to get payment provider (maintains backward compatibility)
+     */
+    public PaymentProvider getPaymentProvider(PaymentMethod paymentMethod) {
+        return getPlatformFactory(paymentMethod).createPaymentProvider();
     }
 }
 

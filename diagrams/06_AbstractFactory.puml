@@ -1,8 +1,40 @@
-@startuml Abstract Factory Pattern - Payment Provider Factory
+@startuml Abstract Factory Pattern - Payment Platform Factory
 
-class PaymentProviderFactory {
-    - providers: Map<PaymentMethod, PaymentProvider>
-    + getPaymentProvider(paymentMethod: PaymentMethod): PaymentProvider
+interface PaymentPlatformFactory {
+    + {abstract} createPaymentProvider(): PaymentProvider
+    + {abstract} createPaymentValidator(): PaymentValidator
+    + {abstract} createPaymentNotifier(): PaymentNotifier
+    + {abstract} getPlatformName(): String
+}
+
+class StripePaymentPlatformFactory {
+    - paymentProvider: StripePaymentProvider
+    - paymentValidator: StripePaymentValidator
+    - paymentNotifier: StripePaymentNotifier
+    + createPaymentProvider(): PaymentProvider
+    + createPaymentValidator(): PaymentValidator
+    + createPaymentNotifier(): PaymentNotifier
+    + getPlatformName(): String
+}
+
+class PaypalPaymentPlatformFactory {
+    - paymentProvider: PaypalPaymentProvider
+    - paymentValidator: PaypalPaymentValidator
+    - paymentNotifier: PaypalPaymentNotifier
+    + createPaymentProvider(): PaymentProvider
+    + createPaymentValidator(): PaymentValidator
+    + createPaymentNotifier(): PaymentNotifier
+    + getPlatformName(): String
+}
+
+class CashOnDeliveryPlatformFactory {
+    - paymentProvider: CashOnDeliveryPaymentProvider
+    - paymentValidator: CashOnDeliveryPaymentValidator
+    - paymentNotifier: CashOnDeliveryPaymentNotifier
+    + createPaymentProvider(): PaymentProvider
+    + createPaymentValidator(): PaymentValidator
+    + createPaymentNotifier(): PaymentNotifier
+    + getPlatformName(): String
 }
 
 interface PaymentProvider {
@@ -12,25 +44,33 @@ interface PaymentProvider {
     + {abstract} getProviderName(): String
 }
 
-class StripePaymentProvider {
-    + authorizePayment(order: Order, amount: BigDecimal): boolean
-    + capturePayment(order: Order, amount: BigDecimal): boolean
-    + refund(order: Order, amount: BigDecimal): boolean
-    + getProviderName(): String
+interface PaymentValidator {
+    + {abstract} validatePaymentDetails(order: Order, amount: BigDecimal): boolean
+    + {abstract} validateRefundEligibility(order: Order, amount: BigDecimal): boolean
+    + {abstract} getValidatorName(): String
 }
 
-class PaypalPaymentProvider {
-    + authorizePayment(order: Order, amount: BigDecimal): boolean
-    + capturePayment(order: Order, amount: BigDecimal): boolean
-    + refund(order: Order, amount: BigDecimal): boolean
-    + getProviderName(): String
+interface PaymentNotifier {
+    + {abstract} notifyPaymentSuccess(order: Order, amount: BigDecimal): void
+    + {abstract} notifyPaymentFailure(order: Order, amount: BigDecimal, reason: String): void
+    + {abstract} notifyRefundProcessed(order: Order, amount: BigDecimal): void
+    + {abstract} getNotifierName(): String
 }
 
-class CashOnDeliveryPaymentProvider {
-    + authorizePayment(order: Order, amount: BigDecimal): boolean
-    + capturePayment(order: Order, amount: BigDecimal): boolean
-    + refund(order: Order, amount: BigDecimal): boolean
-    + getProviderName(): String
+class StripePaymentProvider
+class StripePaymentValidator
+class StripePaymentNotifier
+class PaypalPaymentProvider
+class PaypalPaymentValidator
+class PaypalPaymentNotifier
+class CashOnDeliveryPaymentProvider
+class CashOnDeliveryPaymentValidator
+class CashOnDeliveryPaymentNotifier
+
+class PaymentProviderFactory {
+    - platformFactories: Map<PaymentMethod, PaymentPlatformFactory>
+    + getPlatformFactory(paymentMethod: PaymentMethod): PaymentPlatformFactory
+    + getPaymentProvider(paymentMethod: PaymentMethod): PaymentProvider
 }
 
 enum PaymentMethod {
@@ -44,22 +84,54 @@ class Order {
 }
 
 ' Relationships
-PaymentProviderFactory "1" *-- "1..*" PaymentProvider : creates
+PaymentPlatformFactory <|.. StripePaymentPlatformFactory : implements
+PaymentPlatformFactory <|.. PaypalPaymentPlatformFactory : implements
+PaymentPlatformFactory <|.. CashOnDeliveryPlatformFactory : implements
+
 PaymentProvider <|.. StripePaymentProvider : implements
+PaymentValidator <|.. StripePaymentValidator : implements
+PaymentNotifier <|.. StripePaymentNotifier : implements
+
 PaymentProvider <|.. PaypalPaymentProvider : implements
+PaymentValidator <|.. PaypalPaymentValidator : implements
+PaymentNotifier <|.. PaypalPaymentNotifier : implements
+
 PaymentProvider <|.. CashOnDeliveryPaymentProvider : implements
+PaymentValidator <|.. CashOnDeliveryPaymentValidator : implements
+PaymentNotifier <|.. CashOnDeliveryPaymentNotifier : implements
+
+StripePaymentPlatformFactory ..> PaymentProvider : creates
+StripePaymentPlatformFactory ..> PaymentValidator : creates
+StripePaymentPlatformFactory ..> PaymentNotifier : creates
+
+PaypalPaymentPlatformFactory ..> PaymentProvider : creates
+PaypalPaymentPlatformFactory ..> PaymentValidator : creates
+PaypalPaymentPlatformFactory ..> PaymentNotifier : creates
+
+CashOnDeliveryPlatformFactory ..> PaymentProvider : creates
+CashOnDeliveryPlatformFactory ..> PaymentValidator : creates
+CashOnDeliveryPlatformFactory ..> PaymentNotifier : creates
+
+PaymentProviderFactory "1" *-- "1..*" PaymentPlatformFactory : uses
 PaymentProviderFactory ..> PaymentMethod : uses
 PaymentProvider ..> Order : uses
+PaymentValidator ..> Order : uses
+PaymentNotifier ..> Order : uses
 
-note right of PaymentProviderFactory
-    Abstract Factory: Creates families
-    of related payment provider objects
+note right of PaymentPlatformFactory
+    Abstract Factory Interface: Defines
+    interface for creating families of
+    related payment objects
 end note
 
-note right of PaymentProvider
-    Product Interface: Defines interface
-    for payment processing operations
+note right of StripePaymentPlatformFactory
+    Concrete Factory: Creates all Stripe
+    payment components (Provider, Validator, Notifier)
+end note
+
+note bottom of PaymentProviderFactory
+    Client: Selects appropriate platform
+    factory based on payment method
 end note
 
 @enduml
-

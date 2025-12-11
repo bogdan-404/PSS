@@ -4,6 +4,9 @@ import com.example.fooddelivery.domain.*;
 import com.example.fooddelivery.dto.OrderCreationRequest;
 import com.example.fooddelivery.pattern.behavioral.*;
 import com.example.fooddelivery.pattern.creational.*;
+import com.example.fooddelivery.pattern.creational.PaymentPlatformFactory;
+import com.example.fooddelivery.pattern.creational.PaymentValidator;
+import com.example.fooddelivery.pattern.creational.PaymentNotifier;
 import com.example.fooddelivery.repository.*;
 import com.example.fooddelivery.service.PricingService;
 import com.example.fooddelivery.service.RoutingService;
@@ -113,11 +116,26 @@ public class CheckoutFacade {
         order.setTotalPrice(totalPrice);
 
         // 7. Process payment (Abstract Factory)
-        PaymentProvider paymentProvider = paymentProviderFactory.getPaymentProvider(request.getPaymentMethod());
+        PaymentPlatformFactory platformFactory = paymentProviderFactory.getPlatformFactory(request.getPaymentMethod());
+        PaymentProvider paymentProvider = platformFactory.createPaymentProvider();
+        PaymentValidator paymentValidator = platformFactory.createPaymentValidator();
+        PaymentNotifier paymentNotifier = platformFactory.createPaymentNotifier();
+        
+        // Validate payment
+        if (!paymentValidator.validatePaymentDetails(order, totalPrice)) {
+            paymentNotifier.notifyPaymentFailure(order, totalPrice, "Payment validation failed");
+            throw new IllegalStateException("Payment validation failed");
+        }
+        
+        // Authorize payment
         boolean paymentAuthorized = paymentProvider.authorizePayment(order, totalPrice);
         if (!paymentAuthorized) {
+            paymentNotifier.notifyPaymentFailure(order, totalPrice, "Payment authorization failed");
             throw new IllegalStateException("Payment authorization failed");
         }
+        
+        // Notify success
+        paymentNotifier.notifyPaymentSuccess(order, totalPrice);
 
         // 8. Assign courier (simple assignment for demo)
         List<Courier> couriers = courierRepository.findAll();
